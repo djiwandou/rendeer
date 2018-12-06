@@ -6,9 +6,18 @@ jobs:
       - image: circleci/node:11-browsers
     steps:
       - checkout
+      - run: 'sudo apt install python-pip python-dev'
+      - run: 'sudo easy_install six==1.9.0'
+      - run: 'sudo pip install --upgrade "urllib3==1.22" awsebcli'
       - run: 'npm install'
       - run: 'npm run lint'
-
+      - deploy:
+          name: Deploy to Production
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              eb init Rendeer -r ap-southeast-1 -p "arn:aws:elasticbeanstalk:ap-southeast-1::platform/Docker running on 64bit Amazon Linux/2.12.4"
+              eb deploy --timeout 60
+            fi
 workflows:
   version: 2
   build_test_deploy:
